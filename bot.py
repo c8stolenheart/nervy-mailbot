@@ -167,12 +167,8 @@ def admin_menu():
         ], resize_keyboard=True
     )
 # ---------------- USER COMMANDS ----------------
-from telegram import WebAppInfo
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    uid = str(update.effective_user.id)
-    db = load_db()
-
+    uid = str(update.effective_user.id); db = load_db()
     if uid not in db:
         db[uid] = {
             "expiry":"1970-01-01T00:00:00",
@@ -182,18 +178,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
         save_db(db)
 
-    # WebApp button
-    keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(
-            text="🌐 Open Mini App",
-            web_app=WebAppInfo(url="https://miniapp.imegatron.fi:80")  # deployed miniapp
-        )
-    ]])
-
-    await update.message.reply_text(
-        "🤖 Welcome to iMegatron CloudMail ☁️\nChoose an option:",
-        reply_markup=keyboard
-    )
+    menu = admin_menu() if update.effective_user.id==ADMIN_ID else user_menu()
+    await safe_reply(update, "🤖 Welcome to *I-Megatron* ⚡",)
+    if update.message:
+        await update.message.reply_text("Choose an option:", reply_markup=menu)
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = "📌 Commands:\n"
@@ -672,12 +660,6 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
-
-
-
-
-
-
 
 
 
