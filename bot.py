@@ -186,7 +186,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = InlineKeyboardMarkup([[
         InlineKeyboardButton(
             text="🌐 Open Mini App",
-            web_app=WebAppInfo(url="https://miniapp.imegatron.fi:443")  # deployed miniapp
+            web_app=WebAppInfo(url="https://miniapp.imegatron.fi:80")  # deployed miniapp
         )
     ]])
 
@@ -672,6 +672,7 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
 
 
