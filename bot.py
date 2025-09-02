@@ -61,8 +61,14 @@ def log_action(user_id, action):
         f.write(f"{datetime.now()} - {user_id}: {action}\n")
 
 def check_sub(user_id):
-    db = load_db(); user = db.get(str(user_id))
-    if not user: return False, "❌ No subscription."
+    # Admin bypass
+    if str(user_id) == str(ADMIN_ID):
+        return True, {"admin": True}
+
+    db = load_db()
+    user = db.get(str(user_id))
+    if not user:
+        return False, "❌ No subscription."
     if datetime.fromisoformat(user["expiry"]) < datetime.now():
         return False, "⛔ Subscription expired."
     if user.get("suspended", False):
@@ -70,6 +76,7 @@ def check_sub(user_id):
     if user["used"] >= user["limit"]:
         return False, "⚠️ Limit reached."
     return True, user
+
 
 def cpanel_headers(): 
     return {"Authorization": f"cpanel {CPANEL_USER}:{CPANEL_PASS}"}
@@ -612,3 +619,4 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
