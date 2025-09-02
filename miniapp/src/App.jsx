@@ -3,18 +3,27 @@ import { useEffect, useState } from "react";
 function App() {
   const [user, setUser] = useState({});
   const [emails, setEmails] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "demo";
+  const tg = window.Telegram?.WebApp;
+  const userId = tg?.initDataUnsafe?.user?.id || "demo";
 
   useEffect(() => {
-    fetch(`/api/user/${userId}`)
-      .then(res => res.json())
-      .then(setUser);
+    tg?.ready();
+    tg?.expand();
 
-    fetch(`/api/emails/${userId}`)
-      .then(res => res.json())
-      .then(setEmails);
-  }, [userId]);
+    Promise.all([
+      fetch(`/api/user/${userId}`).then(res => res.json()),
+      fetch(`/api/emails/${userId}`).then(res => res.json())
+    ])
+      .then(([userData, emailData]) => {
+        setUser(userData);
+        setEmails(emailData);
+      })
+      .finally(() => setLoading(false));
+  }, [userId, tg]);
+
+  if (loading) return <p style={{ padding: 20 }}>⏳ Loading...</p>;
 
   return (
     <div style={{ padding: 20, fontFamily: "sans-serif" }}>
@@ -25,9 +34,13 @@ function App() {
       <p><b>Used:</b> {user.used || 0}</p>
       <h3>📧 Emails</h3>
       <ul>
-        {emails.map((e, i) => (
-          <li key={i}>{typeof e === "string" ? e : e.address}</li>
-        ))}
+        {emails.length > 0 ? (
+          emails.map((e, i) => (
+            <li key={i}>{typeof e === "string" ? e : e.address}</li>
+          ))
+        ) : (
+          <li>No emails yet</li>
+        )}
       </ul>
     </div>
   );
