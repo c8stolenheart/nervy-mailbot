@@ -1,25 +1,29 @@
 version: "3.8"
 
 services:
+  bot:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.bot
+    restart: always
+    depends_on:
+      - api
+
   api:
     build:
       context: ./api
       dockerfile: Dockerfile.api
-    ports:
-      - "5001:5003"
     restart: always
+    expose:
+      - "5000"
 
   miniapp:
     build:
       context: ./miniapp
       dockerfile: Dockerfile.miniapp
     restart: always
-
-  bot:
-    build:
-      context: .
-      dockerfile: ./docker/Dockerfile.bot
-    restart: always
+    expose:
+      - "80"
 
   nginx-proxy:
     image: nginx:latest
