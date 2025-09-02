@@ -362,10 +362,16 @@ async def update_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         if result1.returncode == 0 and result2.returncode == 0:
-            await safe_reply(update, "✅ Update complete! Restarting bot...")
+            # Get the latest commit hash
+            commit = subprocess.run(
+                ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True
+            ).stdout.strip()
 
-            # Restart via systemd (works if bot runs as service)
+            await safe_reply(update, f"✅ Update complete!\n📌 Commit: `{commit}`\n♻ Restarting bot...")
+
+            # Restart via systemd
             subprocess.Popen(["systemctl", "restart", "imegatron.service"])
+
         else:
             await safe_reply(update, f"⚠️ Git error:\n{result1.stderr}\n{result2.stderr}")
 
