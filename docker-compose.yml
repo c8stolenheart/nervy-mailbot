@@ -2,32 +2,32 @@ version: "3.9"
 
 services:
   bot:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.bot
     container_name: imegatron-bot
-    command: python bot.py
+    restart: always
     volumes:
+      - ./config.json:/app/config.json
       - ./subs.json:/app/subs.json
       - ./logs.txt:/app/logs.txt
-    restart: always
-    environment:
-      - PYTHONUNBUFFERED=1
+    depends_on:
+      - api
 
   api:
-    build: ./api
+    build:
+      context: ./api
+      dockerfile: Dockerfile.api
     container_name: imegatron-api
-    command: python app.py
+    restart: always
     ports:
       - "5000:5000"
-    volumes:
-      - ./subs.json:/app/subs.json
-      - ./logs.txt:/app/logs.txt
-    restart: always
-    environment:
-      - PYTHONUNBUFFERED=1
 
   miniapp:
-    build: ./miniapp
+    build:
+      context: ./miniapp
+      dockerfile: Dockerfile.miniapp
     container_name: imegatron-miniapp
+    restart: always
     ports:
       - "3000:3000"
-    restart: always
