@@ -1,15 +1,6 @@
-version: "3.9"
+version: "3.8"
 
 services:
-  bot:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.bot
-    volumes:
-      - ./subs.json:/app/subs.json
-      - ./logs.txt:/app/logs.txt
-    restart: always
-
   api:
     build:
       context: ./api
@@ -22,6 +13,24 @@ services:
     build:
       context: ./miniapp
       dockerfile: Dockerfile.miniapp
+    restart: always
+
+  bot:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.bot
+    restart: always
+
+  nginx-proxy:
+    image: nginx:latest
+    container_name: nginx-proxy
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certs:/etc/letsencrypt
     ports:
-      - "3000:80"
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - miniapp
+      - api
     restart: always
