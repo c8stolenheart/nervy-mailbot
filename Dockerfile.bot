@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY bot.py config.json __init__.py ./
+COPY subs.json logs.txt ./
+CMD ["python", "bot.py"]
