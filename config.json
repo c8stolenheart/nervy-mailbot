@@ -1,0 +1,11 @@
+{
+  "BOT_TOKEN": "8299223669:AAGNUZpPlNJZq1cvSo3Jrib74PyjXyE8UJ4",
+  "ADMIN_ID": 2118857113,
+  "CPANEL_USER": "codsmm",
+  "CPANEL_PASS": "U4D8CQP1EKYNBBVJTC17C2VPN3IY6YAX",
+  "CPANEL_HOST": "https://server1120.hostnot.com:2083",
+  "DOMAIN": "imegatron.fi",
+  "DB_FILE": "subs.json",
+  "LOG_FILE": "logs.txt",
+  "MAIL_CHECK_INTERVAL": 1
+}
