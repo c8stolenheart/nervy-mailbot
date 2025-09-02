@@ -5,29 +5,23 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.bot
-    container_name: imegatron-bot
-    restart: always
     volumes:
-      - ./config.json:/app/config.json
       - ./subs.json:/app/subs.json
       - ./logs.txt:/app/logs.txt
-    depends_on:
-      - api
+    restart: always
 
   api:
     build:
       context: ./api
       dockerfile: Dockerfile.api
-    container_name: imegatron-api
-    restart: always
     ports:
       - "5000:5000"
+    restart: always
 
   miniapp:
     build:
       context: ./miniapp
       dockerfile: Dockerfile.miniapp
-    container_name: imegatron-miniapp
-    restart: always
     ports:
-      - "3000:3000"
+      - "3000:80"
+    restart: always
