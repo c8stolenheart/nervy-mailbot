@@ -432,15 +432,40 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id!=ADMIN_ID: return await safe_reply(update,"⛔ Not authorized.")
-    db=load_db(); lines=[]
-    for uid,info in db.items():
-        if not isinstance(info,dict): continue
+    if update.effective_user.id != ADMIN_ID:
+        return await safe_reply(update, "⛔ Not authorized.")
+
+    db = load_db()
+    lines = []
+
+    for uid, info in db.items():
+        # skip non-user entries like "invites"
+        if not isinstance(info, dict) or "expiry" not in info:
+            continue
+
+        expiry = info.get("expiry", "N/A")
+        used = info.get("used", 0)
+        limit = info.get("limit", 0)
+        emails = [
+            m["address"] if isinstance(m, dict) else m
+            for m in info.get("emails", [])
+        ]
+        emails_str = ", ".join(emails) if emails else "None"
+        suspended = info.get("suspended", False)
+
         lines.append(
-            f"👤 {uid}\n Expiry: {info['expiry']}\n Used: {info['used']}/{info['limit']}\n"
-            f" Emails: {', '.join([m['address'] if isinstance(m,dict) else m for m in info.get('emails',[])]) or 'None'}\n Suspended: {info.get('suspended',False)}"
+            f"👤 {uid}\n"
+            f"📅 Expiry: {expiry}\n"
+            f"📊 Used: {used}/{limit}\n"
+            f"📧 Emails: {emails_str}\n"
+            f"⏸ Suspended: {suspended}"
         )
-    await safe_reply(update,"\n\n".join(lines) if lines else "No users.")
+
+    if lines:
+        await safe_reply(update, "\n\n".join(lines))
+    else:
+        await safe_reply(update, "No users found.")
+
 
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id!=ADMIN_ID: return await safe_reply(update,"⛔ Not authorized.")
@@ -635,6 +660,7 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
 
 
