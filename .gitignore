@@ -1,4 +1,4 @@
-# Ignore sensitive files
+# Ignore sensitive file
 subs.json
 logs.txt
 
