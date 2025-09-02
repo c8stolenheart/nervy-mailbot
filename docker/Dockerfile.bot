@@ -2,12 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy API dependencies
-COPY requirements.txt .
-
+COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy API source
-COPY app.py .
+COPY bot.py .
+COPY config.json .
+COPY subs.json .
+COPY logs.txt .
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["python", "bot.py"]
