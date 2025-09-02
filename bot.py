@@ -412,8 +412,22 @@ async def suspend_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else: await safe_reply(update,"❌ User not found.")
 
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    db=load_db(); total=sum(u["used"] for u in db.values() if isinstance(u,dict))
-    await safe_reply(update,f"📊 Total emails created: {total}")
+    db = load_db()
+
+    # Exclude admin from user stats if desired
+    users = [u for uid, u in db.items() if isinstance(u, dict) and uid != str(ADMIN_ID)]
+
+    total_users = len(users)
+    total_emails = sum(u.get("used", 0) for u in users)
+
+    text = (
+        f"📊 Bot Statistics\n"
+        f"👤 Total Users: {total_users}\n"
+        f"📧 Total Emails Created: {total_emails}"
+    )
+
+    await safe_reply(update, text)
+
 
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id!=ADMIN_ID: return await safe_reply(update,"⛔ Not authorized.")
@@ -619,4 +633,5 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
