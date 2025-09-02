@@ -1,18 +1,23 @@
-# Stage 1 - build
+# Stage 1 - build React app
 FROM node:20 AS build
 WORKDIR /app
 
-# Copy only package.json and package-lock.json if exists
+# Copy dependency files
 COPY package*.json ./
 RUN npm install
 
-# Copy rest of frontend source
-COPY . .
+# Copy source code, including public and src
+COPY public ./public
+COPY src ./src
+COPY vite.config.js ./
+
+# Build app
 RUN npm run build
 
 # Stage 2 - serve with nginx
 FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
+COPY --from=build /app/dist ./
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-
