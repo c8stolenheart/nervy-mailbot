@@ -384,7 +384,7 @@ async def update_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await safe_reply(update, f"✅ Update complete!\n📌 Commit: `{commit}`\n♻ Restarting bot...")
 
             # Restart via systemd
-            subprocess.Popen(["systemctl", "restart", "imegatron.service"])
+            subprocess.Popen(["systemctl", "restart", "nervy-mailbot.service"])
 
         else:
             await safe_reply(update, f"⚠️ Git error:\n{result1.stderr}\n{result2.stderr}")
@@ -712,6 +712,7 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
 
 
