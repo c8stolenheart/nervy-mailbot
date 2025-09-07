@@ -192,10 +192,12 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text += "🔹 /myinfo, /list, /create <u>, /delete <u>, /password <u> <pw>\n"
     text += "🔹 /inbox <u>, /defaultpassword <pw>, /showdefaultpassword, /resetdefaultpassword\n"
     text += "🔹 /redeem <code>, /bulkcreate <n>\n"
-    if update.effective_user.id in ADMIN_ID:
-    text += "\n👑 Admin: /addsub, /reset, /ban, /suspend, /stats, /report, /broadcast, /quota, /invite"
+
+    if str(update.effective_user.id) in map(str, ADMIN_ID):
+        text += "\n👑 Admin: /addsub, /reset, /ban, /suspend, /stats, /report, /broadcast, /quota, /invite"
 
     await safe_reply(update, text)
+
 
 async def myinfo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid=str(update.effective_user.id); db=load_db()
@@ -711,6 +713,7 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
 
 
