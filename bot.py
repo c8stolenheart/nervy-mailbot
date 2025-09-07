@@ -30,7 +30,10 @@ with open("config.json") as f:
     CONFIG = json.load(f)
 
 BOT_TOKEN = CONFIG["BOT_TOKEN"]
+# Ensure ADMIN_ID is always a list (even if only one is provided)
 ADMIN_ID = CONFIG["ADMIN_ID"]
+if isinstance(ADMIN_ID, int):   # convert single admin ID to list
+    ADMIN_ID = [ADMIN_ID]
 CPANEL_USER = CONFIG["CPANEL_USER"]
 CPANEL_PASS = CONFIG["CPANEL_PASS"]
 CPANEL_HOST = CONFIG["CPANEL_HOST"]
@@ -62,8 +65,9 @@ def log_action(user_id, action):
 
 def check_sub(user_id):
     # Admin bypass
-    if str(user_id) == str(ADMIN_ID):
-        return True, {"admin": True}
+if str(user_id) in map(str, ADMIN_ID):
+    return True, {"admin": True}
+
 
     db = load_db()
     user = db.get(str(user_id))
@@ -178,8 +182,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         }
         save_db(db)
 
-    menu = admin_menu() if update.effective_user.id==ADMIN_ID else user_menu()
-    await safe_reply(update, "🤖 Welcome to *I-Megatron* ⚡",)
+    menu = admin_menu() if update.effective_user.id in ADMIN_ID else user_menu()
+
+    await safe_reply(update, "🤖 Welcome to Nervy Mailbot ⚡",)
     if update.message:
         await update.message.reply_text("Choose an option:", reply_markup=menu)
 
@@ -188,8 +193,9 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text += "🔹 /myinfo, /list, /create <u>, /delete <u>, /password <u> <pw>\n"
     text += "🔹 /inbox <u>, /defaultpassword <pw>, /showdefaultpassword, /resetdefaultpassword\n"
     text += "🔹 /redeem <code>, /bulkcreate <n>\n"
-    if update.effective_user.id==ADMIN_ID:
-        text+="\n👑 Admin: /addsub, /reset, /ban, /suspend, /stats, /report, /broadcast, /quota, /invite"
+    if update.effective_user.id in ADMIN_ID:
+    text += "\n👑 Admin: /addsub, /reset, /ban, /suspend, /stats, /report, /broadcast, /quota, /invite"
+
     await safe_reply(update, text)
 
 async def myinfo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -202,8 +208,9 @@ async def myinfo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🔑 PW: {u.get('default_password')}"
     )
 async def bot_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return await safe_reply(update, "⛔ Not authorized.")
+   if update.effective_user.id not in ADMIN_ID:
+    return await safe_reply(update, "⛔ Not authorized.")
+
 
     uptime = datetime.now() - START_TIME
     days, seconds = uptime.days, uptime.seconds
@@ -345,7 +352,7 @@ async def inline_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------------- ADMIN COMMANDS ----------------
 async def add_sub(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id!=ADMIN_ID: return await safe_reply(update,"⛔ Not authorized.")
+    if update.effective_user.id in ADMIN_ID: return await safe_reply(update,"⛔ Not authorized.")
     if len(context.args)<3: return await safe_reply(update,"Usage: /addsub user_id days limit")
     user_id,days,limit=context.args[0],int(context.args[1]),int(context.args[2])
     expiry=datetime.now()+timedelta(days=days); db=load_db()
@@ -660,6 +667,7 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
 
 
