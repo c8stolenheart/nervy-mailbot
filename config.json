@@ -1,6 +1,6 @@
 {
   "BOT_TOKEN": "8134706792:AAESZIknweKCw-ttAdTMTnZ56mw37sfWf1Y",
-  "ADMIN_ID": 2118857113,
+  "ADMIN_ID": [2118857113, 27780102],
   "CPANEL_USER": "metasmm",
   "CPANEL_PASS": "44CLNPIC0EEJ8U892EA09LIRLW6MSS4Z",
   "CPANEL_HOST": "https://server1120.hostnot.com:2083",
@@ -9,6 +9,7 @@
   "LOG_FILE": "logs.txt",
   "MAIL_CHECK_INTERVAL": 1
 }
+
 
 
 
