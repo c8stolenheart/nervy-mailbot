@@ -65,9 +65,8 @@ def log_action(user_id, action):
 
 def check_sub(user_id):
     # Admin bypass
-if str(user_id) in map(str, ADMIN_ID):
-    return True, {"admin": True}
-
+    if str(user_id) in map(str, ADMIN_ID):
+        return True, {"admin": True}
 
     db = load_db()
     user = db.get(str(user_id))
@@ -712,6 +711,7 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
 
 
