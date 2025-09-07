@@ -548,6 +548,60 @@ async def quota(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = f"{CPANEL_HOST}/execute/Email/edit_pop_quota"
     r = requests.post(url, headers=cpanel_headers(), data={"domain": DOMAIN, "email": username, "quota": mb}, verify=False).json()
     await safe_reply(update, f"✅ Quota set → {mb}MB" if r.get("status") == 1 else "❌ Error.")
+    
+# ---------------- BULK CREATE ----------------
+async def bulk_create(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    /bulkcreate <count>
+    Create multiple random email accounts at once.
+    """
+    if len(context.args) < 1:
+        return await safe_reply(update, "Usage: /bulkcreate <count>")
+
+    uid = str(update.effective_user.id)
+    ok, status = check_sub(uid)
+    if not ok:
+        return await safe_reply(update, status)
+
+    try:
+        count = int(context.args[0])
+    except:
+        return await safe_reply(update, "❌ Count must be a number.")
+
+    db = load_db()
+    limit_left = db[uid]["limit"] - db[uid]["used"]
+    if count > limit_left:
+        return await safe_reply(update, f"⚠️ You can only create {limit_left} more emails.")
+
+    pw = get_user_password(uid)
+    quota = db[uid].get("quota", 1024)
+    created = []
+
+    for _ in range(count):
+        username = ''.join(random.choices(string.ascii_lowercase, k=6)) + str(random.randint(1000, 9999))
+        url = f"{CPANEL_HOST}/execute/Email/add_pop"
+        data = {"domain": DOMAIN, "email": username, "password": pw, "quota": quota}
+
+        try:
+            r = requests.post(url, headers=cpanel_headers(), data=data, verify=False, timeout=30).json()
+            if r.get("status") == 1:
+                db[uid]["used"] += 1
+                db[uid].setdefault("emails", []).append({"address": f"{username}@{DOMAIN}", "password": pw})
+                created.append(f"{username}@{DOMAIN}")
+            else:
+                logging.warning(f"Bulkcreate error: {r.get('errors')}")
+        except Exception as e:
+            logging.error(f"Bulkcreate exception: {e}")
+
+        await asyncio.sleep(1)  # throttle cPanel requests
+
+    save_db(db)
+    log_action(uid, f"Bulk created {len(created)} emails")
+
+    if created:
+        await safe_reply(update, "✅ Bulk created:\n" + "\n".join(created))
+    else:
+        await safe_reply(update, "❌ No emails created.")
 
 # ---------------- INVITE / REDEEM ----------------
 async def invite(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -695,3 +749,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
