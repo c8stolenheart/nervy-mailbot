@@ -547,21 +547,66 @@ async def bulk_create(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------------- INVITE / REDEEM ----------------
 async def invite(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id!=ADMIN_ID: return await safe_reply(update,"⛔ Not authorized.")
-    if len(context.args)<2: return await safe_reply(update,"Usage: /invite days limit")
-    days=int(context.args[0]); limit=int(context.args[1]); code=generate_invite()
-    db=load_db(); db.setdefault("invites",{})[code]={"days":days,"limit":limit}; save_db(db)
-    await safe_reply(update,f"🎟 Invite code: {code}\n📅 {days} days | 📊 {limit} emails")
+    if update.effective_user.id not in ADMIN_ID:
+        return await safe_reply(update, "⛔ Not authorized.")
+
+    if len(context.args) < 2:
+        return await safe_reply(update, "Usage: /invite days limit")
+
+    days = int(context.args[0])
+    limit = int(context.args[1])
+    code = generate_invite()
+
+    db = load_db()
+    db.setdefault("invites", {})
+
+    if days == 0 and limit == 0:
+        # Unlimited invite
+        db["invites"][code] = {"unlimited": True}
+        msg = f"🎟 Invite code: {code}\n♾ Unlimited (no expiry, no limit)"
+    else:
+        db["invites"][code] = {"days": days, "limit": limit}
+        msg = f"🎟 Invite code: {code}\n📅 {days} days | 📊 {limit} emails"
+
+    save_db(db)
+    await safe_reply(update, msg)
+
 
 async def redeem(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if len(context.args)<1: return await safe_reply(update,"Usage: /redeem CODE")
-    code=context.args[0].strip(); uid=str(update.effective_user.id); db=load_db()
-    if code in db.get("invites",{}):
-        details=db["invites"].pop(code); expiry=datetime.now()+timedelta(days=details["days"])
-        db[uid]={"expiry":expiry.isoformat(),"limit":details["limit"],"used":0,"emails":[],"default_password": generate_password()}
-        save_db(db); log_action(uid,f"Redeemed {code}")
-        await safe_reply(update,f"✅ Subscription active!\n📅 Until {expiry.date()} | 📊 Limit {details['limit']}")
-    else: await safe_reply(update,"❌ Invalid or expired code.")
+    if len(context.args) < 1:
+        return await safe_reply(update, "Usage: /redeem CODE")
+
+    code = context.args[0].strip()
+    uid = str(update.effective_user.id)
+    db = load_db()
+
+    if code in db.get("invites", {}):
+        details = db["invites"].pop(code)
+
+        if details.get("unlimited"):  # Unlimited invite case
+            expiry = "2099-12-31T23:59:59"
+            limit = float("inf")  # treated as unlimited
+            msg = "✅ Subscription active!\n♾ Unlimited (no expiry, no limit)"
+        else:
+            expiry = (datetime.now() + timedelta(days=details["days"])).isoformat()
+            limit = details["limit"]
+            msg = f"✅ Subscription active!\n📅 Until {expiry.split('T')[0]} | 📊 Limit {limit}"
+
+        db[uid] = {
+            "expiry": expiry,
+            "limit": limit,
+            "used": 0,
+            "emails": [],
+            "default_password": generate_password()
+        }
+
+        save_db(db)
+        log_action(uid, f"Redeemed {code}")
+        await safe_reply(update, msg)
+
+    else:
+        await safe_reply(update, "❌ Invalid or expired code.")
+
 
 # ---------------- MAIL CHECKER ----------------
 IMAP_HOST = "mail." + DOMAIN
@@ -667,6 +712,7 @@ def main():
     app.run_polling()
 
 if __name__=="__main__": main()
+
 
 
 
